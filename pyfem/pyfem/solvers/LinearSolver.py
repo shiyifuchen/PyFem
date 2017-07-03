@@ -35,6 +35,7 @@ class LinearSolver ( BaseModule ):
       fhat = globdat.fhat
       
     K,fint = assembleTangentStiffness( props, globdat )
+    
          
     globdat.state = globdat.dofs.solve( K, fhat )
 
