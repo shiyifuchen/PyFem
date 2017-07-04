@@ -1,0 +1,7 @@
+git init
+git remote add orgin git@github.com:shiyifuchen/PyFem.git
+git pull orgin master
+
+git add .
+git commit -m "shiyifuchen"
+git push orgin master
