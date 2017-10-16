@@ -7,12 +7,12 @@ class DuncanChangEv(BaseMaterial):
   def __init__(self,props):
     BaseMaterial.__init__(self,props)
     
-#    self.K = self.E/3.0/(1-2*self.nu)
+#    self.K = self.E/3.0/(1-2*self.nu)'
 #    self.G = self.E/2.0/(1+self.nu)
 #    self.C = self.K*getII(3)+2*self.G*getI_bar(3)    
     
     self.setHistoryParameter("stresses",zeros(6))
-    self.setHistoryParameter("confining_pressure",0.0)
+    self.setHistoryParameter("confining_pressure",100.0)
     self.setHistoryParameter("max_stress_diff",0.0)
     self.setHistoryParameter("max_stress_level",0.0)
     self.commitHistory()
@@ -20,12 +20,13 @@ class DuncanChangEv(BaseMaterial):
     #PROPS:KK,n,Rf,c,Phi0,G,D,F,Kur,Pa,DPhi
   def getStress( self, deformation ):
     sigma0=self.getHistoryParameter("stresses")
+    print sigma0
     CP=self.getHistoryParameter("confining_pressure")
     MSD=self.getHistoryParameter("max_stress_diff")
     MSL=self.getHistoryParameter("max_stress_level")
     PS = self.__calPrincipal(sigma0)
-    PS1=-PS[2]
-    PS3=-PS[0]
+    PS1=-min(PS)
+    PS3=-max(PS)
     Phi = self.Phi0-self.DPhi*log10(CP/self.Pa)
     Phi=Phi*pi/180
     S=self.__updateEnu(PS1,PS3,Phi)
@@ -36,8 +37,8 @@ class DuncanChangEv(BaseMaterial):
     dstrain[3:] *= 0.5
     sigma = sigma0 + dot(self.C, deformation.dstrain )
     PS = self.__calPrincipal(sigma)
-    PS1=-PS[2]
-    PS3=-PS[0]    
+    PS1=-min(PS)
+    PS3=-max(PS)    
     S=self.__updateEnu(PS1,PS3,Phi)
     self.K = self.E/3.0/(1-2*self.nu)
     self.G = self.E/2.0/(1+self.nu)
@@ -64,6 +65,8 @@ class DuncanChangEv(BaseMaterial):
     A[2,0]=A[0,2]=stress[5]
     return linalg.eig(A)[0]
   def __updateEnu(self,PS1,PS3,Phi):
+    print "PS1 = ",PS1
+    print "PS3 = ",PS3
     CP=self.getHistoryParameter("confining_pressure")
     MSD=self.getHistoryParameter("max_stress_diff")
     MSL=self.getHistoryParameter("max_stress_level")
@@ -74,15 +77,18 @@ class DuncanChangEv(BaseMaterial):
     S=S/(2*self.c*cos(Phi)+2*PSFEI*sin(Phi))
     if S >= 0.99:
       S=0.99
+    self.E=self.KK*self.Pa*((CP/self.Pa)**self.n)
     A=self.D*(PS1-PS3)
-    A=A/(self.KK*self.Pa*((CP/self.Pa)**self.n))
+    A=A/self.E
     A=A/(1-self.Rf*S)
-    self.nu=self.G-self.F*log10(CP/self.Pa)
+    self.nu=self.GG-self.F*log10(CP/self.Pa)
     self.nu=self.nu/(1-A)/(1-A)
     if self.nu>=0.49:
       self.nu=0.49
-    self.E=self.KK*self.Pa*((CP/self.Pa)**self.n)
+    
     self.E=self.E*((1-self.Rf*S)**2)
+    print "Et = ",self.E
+    print "vt = ",self.nu
     if (S<MSL) and ((PS1-PS3)<MSD):
       self.E=self.Kur*self.Pa*((CP/self.Pa)**self.n)
     return S

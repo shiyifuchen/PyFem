@@ -63,7 +63,7 @@ class NonlinearSolver( BaseModule ):
 
       globdat.iiter += 1
 	      
-      da = globdat.dofs.solve( K, fext-fint )
+      da = globdat.dofs.solve( K, fext-fint ,globdat.stepName)
 
       Da[:] += da[:]
       a [:] += da[:]
@@ -76,12 +76,12 @@ class NonlinearSolver( BaseModule ):
       # and hence its norm is zero. In that case, the norm of the residue is not
       # divided by the norm of the external force.
   
-      norm = globdat.dofs.norm( fext )
+      norm = globdat.dofs.norm( fext,globdat.stepName )
   
       if norm < 1.0e-16:
-        error = globdat.dofs.norm( fext-fint )
+        error = globdat.dofs.norm( fext-fint,globdat.stepName )
       else:
-        error = globdat.dofs.norm( fext-fint ) / norm
+        error = globdat.dofs.norm( fext-fint ,globdat.stepName) / norm
 
       print '  Iter', globdat.iiter, ':', error
 

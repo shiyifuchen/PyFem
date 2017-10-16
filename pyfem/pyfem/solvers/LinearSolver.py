@@ -37,7 +37,7 @@ class LinearSolver ( BaseModule ):
     K,fint = assembleTangentStiffness( props, globdat )
     
          
-    globdat.state = globdat.dofs.solve( K, fhat )
+    globdat.state = globdat.dofs.solve( K, fhat,globdat.stepName )
 
     globdat.fint = assembleInternalForce( props, globdat )
     

@@ -5,7 +5,7 @@ Created on Mon Oct 20 17:30:21 2014
 @author: LUX
 """
 
-from numpy import zeros
+from numpy import zeros,linalg
 
 class Properties:
   def __init__ ( self, dictionary = {} ):
@@ -64,6 +64,8 @@ class GlobalData ( Properties ):
    
     self.outputNames = []
     self.hasGravity = False
+    self.stepName = ''
+    self.fhatMap = {}
 
   def readFromFile( self , fname ):
 
@@ -77,7 +79,56 @@ class GlobalData ( Properties ):
           line = fin.readline()  
 
           if line.startswith('</ExternalForces>') == True:
+          ##### 如果存在默认的载荷，在解析完所有载荷条件后先设置为默认的
+            if self.fhatMap.has_key("Default"):
+              self.fhat = self.fhatMap["Default"]
             return
+          
+          ########## 2017.07.09
+          if line.startswith('<Gravity>') == True:
+            while True:
+              line = fin.readline()
+              
+              if line.startswith('</Gravity>') == True:
+                break
+              a = line.strip().split(';')
+              if len(a) == 2:
+                b = a[0].split('=')
+                dofType = b[0].strip()
+                self.gravity[self.dofs.getForType(self.nodes.keys(),dofType)] = eval(b[1])
+                self.hasGravity = True                
+          
+          if line.startswith('<step') ==True:
+            #####又初始的载荷条件，需要保存
+            if linalg.norm(self.fhat) > 0 and len(self.fhatMap) == 0:
+              self.fhatMap['Default'] = self.fhat
+            a = a=(line[1:-1]).strip().split(',')
+            stepName=''
+            opType='MOD'
+            if len(a) == 1:
+              stepName=(a[0].split('=')[1]).strip()
+            elif len(a) == 2:
+              stepName=(a[0].split('=')[1]).strip()
+              opType=(a[1].split('=')[1]).strip()
+              opType=(opType.split('>')[0]).strip()
+              if opType!='MOD':
+                opType='NEW'
+                #####如果为NEW模式，则清除之前的载荷条件
+                self.fhat = zeros( len( self.dofs ) )
+            while True:
+              line = fin.readline()
+              if line.startswith('</step>') == True:
+                #####分析步字段结束时以分析步名称保存当前的边界条件
+                self.fhatMap[stepName]=self.fhat
+                break
+              a = line.strip().split(';')
+              if len(a) == 2:
+                b = a[0].split('=')
+                if len(b) == 2:
+                  c = b[0].split('[')
+                  dofType = c[0]
+                  nodeID  = eval(c[1].split(']')[0])
+                  self.fhat[self.dofs.getForType(nodeID,dofType)] = eval(b[1])
         
           a = line.strip().split(';')
           
@@ -92,20 +143,20 @@ class GlobalData ( Properties ):
               
               self.fhat[self.dofs.getForType(nodeID,dofType)] = eval(b[1])
               
-      if line.startswith('<Gravity>') == True:
-        while True:
-          line = fin.readline()  
-
-          if line.startswith('</Gravity>') == True:
-            break
-        
-          a = line.strip().split(';')
-          
-          if len(a) == 2:
-            b = a[0].split('=')
-            dofType = b[0].strip()
-            self.gravity[self.dofs.getForType(self.nodes.keys(),dofType)] = eval(b[1])
-            self.hasGravity = True
+#      if line.startswith('<Gravity>') == True:
+#        while True:
+#          line = fin.readline()  
+#
+#          if line.startswith('</Gravity>') == True:
+#            break
+#        
+#          a = line.strip().split(';')
+#          
+#          if len(a) == 2:
+#            b = a[0].split('=')
+#            dofType = b[0].strip()
+#            self.gravity[self.dofs.getForType(self.nodes.keys(),dofType)] = eval(b[1])
+#            self.hasGravity = True
 
 #---------------------------------------------------------------------------------
 #
@@ -148,6 +199,11 @@ class GlobalData ( Properties ):
       print
     print
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
+  def getDisp( self , nodeID , dofType ):
+    return self.state[self.dofs.getForType(nodeID,dofType)]
 #------------------------------------------------------------------------------
 #
 #------------------------------------------------------------------------------

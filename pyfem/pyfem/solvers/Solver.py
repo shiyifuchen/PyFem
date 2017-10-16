@@ -13,6 +13,8 @@ class Solver:
     props.currentModule = "solver"
 
     self.solver = eval(solverType+"( props , globdat )")
+    if globdat.fhatMap.has_key(globdat.stepName):
+      globdat.fhat = globdat.fhatMap[globdat.stepName]
     
 
 #------------------------------------------------------------------------------
