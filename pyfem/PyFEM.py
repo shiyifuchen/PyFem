@@ -11,7 +11,6 @@ t0=time.time()
 print "******  InputReader Start ..."
 
 props,globdat = InputReader( sys.argv )
-print props.Elem.material.E
 props.kill = []
 
 t1=time.time()
@@ -35,7 +34,6 @@ for step in props.steps:
   
   while globdat.active:
     solver.run(props,globdat)
-    print globdat.getDisp(100,'w')
     output.run(props,globdat)
   globdat.active = True
   globdat.cycle = 0

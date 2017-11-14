@@ -79,3 +79,9 @@ def getII(dim):
 
 def getI_bar(dim):
   return getI(dim)-1./3*getII(dim)
+
+#   Derivative of a General Isotropic symmetric tensor-valued function
+#   of a symmetric tensor in 2-D (without repeated eigenvalues)
+def DGISO2( dydx , y , x , eigProj ):
+  pass
+  

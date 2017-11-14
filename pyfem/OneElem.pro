@@ -1,48 +1,33 @@
 input = "OneElem.dat";
-
 Elem =
 {
   type = "SmallStrainContinuum3D";
-#  rho = 0;
+
   material = 
   {
-    type = "DuncanChangEv";
-    KK=1000;
-    n=0.5;
-    Rf=0.8;
-    c=10;
-    Phi0=30;
-    GG=0.3;
-    D=0.0;
-    F=0.0;
-    Kur=1500;
-    Pa=100;
-    DPhi=0.0;  
+    type = "J2Plastic"; 
+    E = 2.0E8;
+    nu   = 0.3;
+    sigmaY = 1.0E5;
+    H = 2.0E8;
   };
 };
 
-steps=["Step-1","Step-2"];
-Step-1=
-{
-	type = "Static";
-	solver = 
-	{
-		type = "GeostaticSolver";
-	};
-};
+steps=["Step-1"];
 
-Step-2=
+Step-1=
 {
 	type = "Static";
 	solver = 
 	{
 		type = "NonlinearSolver";
 		maxCycle = 1;
-		iterMax = 10;
+		iterMax = 100;
 		tol = 1.0e-6;
 	};
 };
-outlabel = ["stresses"];
+
+outlabel = ["stresses","equivalent_strain"];
 
 outputModules = ["vtk","output"];
 

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from pyfem.materials.BaseMaterial import BaseMaterial
-from numpy import zeros, dot,outer,inv
+from numpy import zeros, dot,outer,inv,diag
 from numpy.linalg import eig
 from math import sqrt
 from pyfem.util.tensor import decomp,norm,unitFlow,getII,getI_bar
@@ -31,16 +31,18 @@ class TrescaPlaneStrain( BaseMaterial ):
     deltaGamma = 0.0
     alpha = eqStrain
     S_trial = dev_sigma0 + 2 * self.G * dev_dstrain
-    eigVals,eigVects = eig(S_trial)
+    #将试探应力组装成矩阵形式
+    MS_trial = diag([S_trial[:-1]])
+    eigVals,eigVects = eig(MS_trial)
     #eig计算的特征值未排序，特征向量是按特征值的顺序按列向量存储
-    sorted = eigVals.argsort()  #返回一个排序的索引
-    S1_trial = eigVals[sorted[0]]
-    S2_trial = eigVals[sorted[1]]
-    S3_trial = eigVals[sorted[2]]
+    sortedIndex = eigVals.argsort()  #返回一个排序的索引
     
-    e1 = eigVects[:,sorted[0]]
-    e2 = eigVects[:,sorted[1]]
-    e3 = eigVects[:,sorted[2]]
+    S1_trial = eigVals[sortedIndex[0]]
+    S2_trial = eigVals[sortedIndex[1]]
+    S3_trial = eigVals[sortedIndex[2]]    
+    e1 = eigVects[:,sortedIndex[0]]
+    e2 = eigVects[:,sortedIndex[1]]
+    e3 = eigVects[:,sortedIndex[2]]
     E1 = outer(e1,e1)
     E2 = outer(e2,e2)
     E3 = outer(e3,e3)

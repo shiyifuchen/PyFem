@@ -2,6 +2,7 @@
 
 from pyfem.materials.BaseMaterial import BaseMaterial
 from numpy import zeros,dot,outer
+from numpy.linalg import matrix_rank,inv
 from math import sqrt
 from pyfem.util.tensor import decomp,norm,unitFlow,getII,getI_bar
 
@@ -60,6 +61,10 @@ class J2Plastic(BaseMaterial):
     
     self.Cep = self.Cep + 4*self.G*self.G*deltaGamma/norm(S_trial)*\
         (outer(n,n)-getI_bar(3))
+        
+    print matrix_rank(self.Cep-self.C)
+    print dot(inv(self.C-self.Cep),self.C-self.Cep)
+    
     
     self.setHistoryParameter("stresses",sigma)
     self.setHistoryParameter("equivalent_strain",eqStrain)
